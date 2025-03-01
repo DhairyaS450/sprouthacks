@@ -5,7 +5,6 @@ const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const Receipt = require('../models/Receipt');
-const { extractTextFromImage } = require('../utils/ocrUtils');
 const { analyzeReceiptWithGemini } = require('../utils/geminiUtils');
 
 // Ensure uploads directory exists
@@ -79,18 +78,15 @@ router.post('/upload', upload.single('receipt'), async (req, res) => {
 
     // Extract text from the receipt image
     try {
-      const extractedText = await extractTextFromImage(req.file.path);
-      console.log('Extracted text:', extractedText);
-      
       // Analyze the receipt with Gemini
-      const analysis = await analyzeReceiptWithGemini(extractedText);
+      const analysis = await analyzeReceiptWithGemini(req.file.path);
+      console.log(req.file.path);
       console.log('Analysis result:', analysis);
       
       // Create a new receipt record
       const receipt = new Receipt({
         user: userId,
         imagePath: '/uploads/' + req.file.filename,
-        extractedText: extractedText,
         products: analysis.products || [],
         overallScore: analysis.overallScore || 5,
         carbonFootprint: typeof analysis.carbonFootprint === 'number' ? analysis.carbonFootprint : 0,
@@ -118,7 +114,7 @@ router.post('/upload', upload.single('receipt'), async (req, res) => {
     } catch (ocrError) {
       console.error('OCR or Analysis Error:', ocrError);
       
-      // If OCR fails, return a mock analysis for demo purposes
+      // If something fails, return a mock analysis for demo purposes
       const mockAnalysis = {
         products: [
           {

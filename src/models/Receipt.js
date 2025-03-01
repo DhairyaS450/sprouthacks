@@ -36,10 +36,6 @@ const receiptSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  extractedText: {
-    type: String,
-    required: true
-  },
   products: [productSchema],
   overallScore: {
     type: Number,

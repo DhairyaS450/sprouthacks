@@ -3,58 +3,6 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * Extract text from an image using Tesseract OCR
- * @param {string} imagePath - Path to the image file
- * @returns {Promise<string>} - Extracted text from the image
- */
-async function extractTextFromImage(imagePath) {
-  console.log('Starting OCR extraction for:', imagePath);
-  
-  // Check if file exists
-  if (!fs.existsSync(imagePath)) {
-    console.error('File does not exist:', imagePath);
-    throw new Error(`File does not exist: ${imagePath}`);
-  }
-  
-  const worker = await createWorker();
-  
-  try {
-    console.log('Loading OCR language data...');
-    await worker.loadLanguage('eng');
-    await worker.initialize('eng');
-    
-    console.log('Recognizing text...');
-    const { data: { text } } = await worker.recognize(imagePath);
-    
-    console.log('OCR extraction completed successfully');
-    await worker.terminate();
-    
-    return text || 'No text extracted';
-  } catch (error) {
-    console.error('OCR Error:', error);
-    try {
-      await worker.terminate();
-    } catch (terminateError) {
-      console.error('Error terminating OCR worker:', terminateError);
-    }
-    
-    // For demo purposes, return some sample text if OCR fails
-    console.log('Returning sample text due to OCR failure');
-    return `Sample Receipt
-Store: Grocery Market
-Date: ${new Date().toLocaleDateString()}
----------------------------
-Organic Bananas     $2.99
-Plastic Water Bottles (24-pack)  $5.99
-Recycled Paper Towels  $3.49
-Local Honey Jar    $6.99
----------------------------
-Total:             $19.46
-Thank you for shopping!`;
-  }
-}
-
-/**
  * Parse receipt text to extract products and prices
  * This is a simple implementation and might need to be enhanced for real receipts
  * @param {string} text - Extracted text from receipt
@@ -101,6 +49,5 @@ function parseReceiptText(text) {
 }
 
 module.exports = {
-  extractTextFromImage,
   parseReceiptText
 }; 
