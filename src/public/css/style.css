@@ -1,0 +1,101 @@
+/* Main Styles */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+footer {
+  margin-top: auto;
+}
+
+/* Hero Section */
+.hero {
+  padding: 4rem 0;
+}
+
+.hero h1 {
+  font-weight: 800;
+}
+
+/* Feature Icons */
+.feature-icon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Upload Page */
+.upload-area {
+  border: 2px dashed #ced4da;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.upload-area:hover {
+  border-color: #198754;
+  background-color: rgba(25, 135, 84, 0.05);
+}
+
+.score-badge {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* Dashboard */
+.card {
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fadeIn {
+  animation: fadeIn 0.5s ease-in;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero {
+    padding: 2rem 0;
+    text-align: center;
+  }
+  
+  .hero img {
+    margin-top: 2rem;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #198754;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #146c43;
+} 

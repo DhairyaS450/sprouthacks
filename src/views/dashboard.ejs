@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - EcoTracker</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+    <div class="container">
+      <a class="navbar-brand" href="/">EcoTracker</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/upload">Upload Receipt</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/dashboard">Dashboard</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-5">
+    <h1 class="mb-4">Your Sustainability Dashboard</h1>
+    
+    <!-- User Stats -->
+    <div class="row mb-4">
+      <div class="col-md-4 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body text-center">
+            <i class="bi bi-trophy-fill text-success fs-1 mb-3"></i>
+            <h5 class="card-title">Eco Points</h5>
+            <h2 class="display-4 fw-bold text-success" id="ecoPoints">0</h2>
+            <p class="text-muted">Keep making sustainable choices to earn more points!</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body text-center">
+            <i class="bi bi-receipt text-success fs-1 mb-3"></i>
+            <h5 class="card-title">Receipts Analyzed</h5>
+            <h2 class="display-4 fw-bold text-success" id="receiptsCount">0</h2>
+            <p class="text-muted">Upload more receipts to track your sustainability journey.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-3">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body text-center">
+            <i class="bi bi-cloud text-success fs-1 mb-3"></i>
+            <h5 class="card-title">Carbon Saved</h5>
+            <h2 class="display-4 fw-bold text-success" id="carbonSaved">0</h2>
+            <p class="text-muted">kg CO₂ saved by making sustainable choices</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row mb-4">
+      <div class="col-md-6 mb-3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">Sustainability Score Trend</h5>
+            <canvas id="scoreChart" height="250"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-3">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title">Carbon Footprint by Category</h5>
+            <canvas id="categoryChart" height="250"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Recent Receipts -->
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="card-title mb-0">Recent Receipts</h5>
+          <a href="/upload" class="btn btn-sm btn-success">
+            <i class="bi bi-plus-lg me-1"></i> Add New
+          </a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Items</th>
+                <th>Score</th>
+                <th>Carbon</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="receiptsTable">
+              <tr>
+                <td colspan="5" class="text-center py-4 text-muted">
+                  <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+                  No receipts analyzed yet. Upload your first receipt!
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Leaderboard -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Eco Leaderboard</h5>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>User</th>
+                <th>Eco Points</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardTable">
+              <!-- Leaderboard data will be loaded here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-dark text-white py-4">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <p>&copy; 2025 EcoTracker - Created for SproutHacks</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+          <a href="#" class="text-white me-3">Privacy Policy</a>
+          <a href="#" class="text-white">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // For demo purposes, we'll use a hardcoded user ID
+      const userId = '65e5f8d0e4b0a1b2c3d4e5f6';
+      
+      // Fetch user data
+      fetch(`/api/users/${userId}`)
+        .then(response => response.json())
+        .then(user => {
+          document.getElementById('ecoPoints').textContent = user.ecoPoints;
+        })
+        .catch(error => console.error('Error fetching user data:', error));
+      
+      // Fetch receipts data
+      fetch(`/api/receipts/user/${userId}`)
+        .then(response => response.json())
+        .then(receipts => {
+          // Update receipts count
+          document.getElementById('receiptsCount').textContent = receipts.length;
+          
+          // Calculate carbon saved (simplified for demo)
+          const carbonSaved = receipts.reduce((total, receipt) => {
+            // Assume we saved 20% of the carbon footprint by making better choices
+            return total + (receipt.carbonFootprint * 0.2);
+          }, 0);
+          document.getElementById('carbonSaved').textContent = carbonSaved.toFixed(1);
+          
+          // Populate receipts table
+          if (receipts.length > 0) {
+            const receiptsTable = document.getElementById('receiptsTable');
+            receiptsTable.innerHTML = '';
+            
+            receipts.forEach(receipt => {
+              const date = new Date(receipt.analysisDate);
+              const formattedDate = date.toLocaleDateString();
+              
+              const row = document.createElement('tr');
+              row.innerHTML = `
+                <td>${formattedDate}</td>
+                <td>${receipt.products.length} items</td>
+                <td>
+                  <span class="badge bg-${getScoreColor(receipt.overallScore)} rounded-pill">
+                    ${receipt.overallScore}/10
+                  </span>
+                </td>
+                <td title="${receipt.carbonFootprintDescription || ''}">
+                  ${receipt.carbonFootprint.toFixed(1)} kg
+                </td>
+                <td>
+                  <a href="/receipts/${receipt._id}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              `;
+              
+              receiptsTable.appendChild(row);
+            });
+            
+            // Create score trend chart
+            createScoreChart(receipts);
+            
+            // Create category chart (simplified for demo)
+            createCategoryChart();
+          }
+        })
+        .catch(error => console.error('Error fetching receipts data:', error));
+      
+      // Fetch leaderboard data
+      fetch('/api/users/leaderboard/top')
+        .then(response => response.json())
+        .then(users => {
+          const leaderboardTable = document.getElementById('leaderboardTable');
+          leaderboardTable.innerHTML = '';
+          
+          users.forEach((user, index) => {
+            const row = document.createElement('tr');
+            
+            // Highlight current user
+            if (user._id === userId) {
+              row.classList.add('table-success');
+            }
+            
+            row.innerHTML = `
+              <td>${index + 1}</td>
+              <td>${user.username}</td>
+              <td>${user.ecoPoints}</td>
+            `;
+            
+            leaderboardTable.appendChild(row);
+          });
+        })
+        .catch(error => console.error('Error fetching leaderboard data:', error));
+      
+      // Function to create score trend chart
+      function createScoreChart(receipts) {
+        const ctx = document.getElementById('scoreChart').getContext('2d');
+        
+        // Sort receipts by date
+        receipts.sort((a, b) => new Date(a.analysisDate) - new Date(b.analysisDate));
+        
+        const labels = receipts.map(receipt => {
+          const date = new Date(receipt.analysisDate);
+          return date.toLocaleDateString();
+        });
+        
+        const scores = receipts.map(receipt => receipt.overallScore);
+        
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Sustainability Score',
+              data: scores,
+              borderColor: '#198754',
+              backgroundColor: 'rgba(25, 135, 84, 0.1)',
+              tension: 0.3,
+              fill: true
+            }]
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 10
+              }
+            }
+          }
+        });
+      }
+      
+      // Function to create category chart (demo data)
+      function createCategoryChart() {
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        
+        // Demo data for categories
+        const data = {
+          labels: ['Food', 'Household', 'Electronics', 'Clothing', 'Other'],
+          datasets: [{
+            label: 'Carbon Footprint (kg CO₂)',
+            data: [12, 8, 15, 6, 3],
+            backgroundColor: [
+              'rgba(25, 135, 84, 0.7)',
+              'rgba(13, 110, 253, 0.7)',
+              'rgba(255, 193, 7, 0.7)',
+              'rgba(220, 53, 69, 0.7)',
+              'rgba(108, 117, 125, 0.7)'
+            ]
+          }]
+        };
+        
+        new Chart(ctx, {
+          type: 'doughnut',
+          data: data,
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'right'
+              }
+            }
+          }
+        });
+      }
+      
+      // Function to get color based on score
+      function getScoreColor(score) {
+        if (score >= 7) return 'success';
+        if (score >= 4) return 'warning';
+        return 'danger';
+      }
+    });
+  </script>
+</body>
+</html> 
