@@ -8,6 +8,48 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <style>
+    #cameraContainer {
+      position: relative;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    #cameraPreview {
+      width: 100%;
+      max-height: 400px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .camera-controls {
+      margin-top: 15px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    .capture-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: white;
+      border: 3px solid #198754;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .capture-btn:hover {
+      background-color: #f8f9fa;
+    }
+    .capture-btn .inner-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-color: #198754;
+    }
+    .tab-content {
+      padding-top: 20px;
+    }
+  </style>
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-success">
@@ -44,38 +86,109 @@
               Upload a clear image of your receipt to get sustainability insights and eco-friendly alternatives.
             </div>
             
-            <form id="uploadForm" enctype="multipart/form-data">
-              <div class="mb-4">
-                <div class="upload-area p-5 border rounded text-center bg-light">
-                  <i class="bi bi-cloud-arrow-up fs-1 text-success mb-3"></i>
-                  <h5>Drag & Drop Receipt Image</h5>
-                  <p class="text-muted">or</p>
-                  <input type="file" id="receiptImage" name="receipt" class="d-none" accept="image/jpeg,image/png,image/jpg,application/pdf">
-                  <button type="button" id="browseBtn" class="btn btn-outline-success">Browse Files</button>
-                  <p class="mt-2 small text-muted">Supported formats: JPG, PNG, PDF</p>
-                </div>
-                <div id="previewContainer" class="mt-3 d-none">
-                  <div class="d-flex align-items-center">
-                    <img id="imagePreview" class="img-thumbnail me-3" style="max-height: 100px;">
-                    <div>
-                      <p id="fileName" class="mb-1 fw-bold"></p>
-                      <button type="button" id="removeBtn" class="btn btn-sm btn-outline-danger">
-                        <i class="bi bi-trash"></i> Remove
-                      </button>
+            <ul class="nav nav-tabs" id="receiptTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-tab-pane" type="button" role="tab" aria-controls="upload-tab-pane" aria-selected="true">
+                  <i class="bi bi-cloud-upload me-2"></i>Upload File
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="camera-tab" data-bs-toggle="tab" data-bs-target="#camera-tab-pane" type="button" role="tab" aria-controls="camera-tab-pane" aria-selected="false">
+                  <i class="bi bi-camera me-2"></i>Take Photo
+                </button>
+              </li>
+            </ul>
+            
+            <div class="tab-content" id="receiptTabsContent">
+              <!-- Upload Tab -->
+              <div class="tab-pane fade show active" id="upload-tab-pane" role="tabpanel" aria-labelledby="upload-tab" tabindex="0">
+                <form id="uploadForm" enctype="multipart/form-data">
+                  <div class="mb-4">
+                    <div class="upload-area p-5 border rounded text-center bg-light">
+                      <i class="bi bi-cloud-arrow-up fs-1 text-success mb-3"></i>
+                      <h5>Drag & Drop Receipt Image</h5>
+                      <p class="text-muted">or</p>
+                      <input type="file" id="receiptImage" name="receipt" class="d-none" accept="image/jpeg,image/png,image/jpg,application/pdf">
+                      <button type="button" id="browseBtn" class="btn btn-outline-success">Browse Files</button>
+                      <p class="mt-2 small text-muted">Supported formats: JPG, PNG, PDF</p>
+                    </div>
+                    <div id="previewContainer" class="mt-3 d-none">
+                      <div class="d-flex align-items-center">
+                        <img id="imagePreview" class="img-thumbnail me-3" style="max-height: 100px;">
+                        <div>
+                          <p id="fileName" class="mb-1 fw-bold"></p>
+                          <button type="button" id="removeBtn" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i> Remove
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- For demo purposes, we'll use a hardcoded user ID -->
+                  <input type="hidden" name="userId" value="65e5f8d0e4b0a1b2c3d4e5f6">
+                  
+                  <div class="d-grid">
+                    <button type="submit" id="analyzeBtn" class="btn btn-success btn-lg" disabled>
+                      <i class="bi bi-search me-2"></i>Analyze Receipt
+                    </button>
+                  </div>
+                </form>
+              </div>
+              
+              <!-- Camera Tab -->
+              <div class="tab-pane fade" id="camera-tab-pane" role="tabpanel" aria-labelledby="camera-tab" tabindex="0">
+                <div id="cameraContainer" class="mb-4">
+                  <div id="cameraPlaceholder" class="text-center p-5 border rounded bg-light">
+                    <i class="bi bi-camera fs-1 text-success mb-3"></i>
+                    <h5>Camera Access Required</h5>
+                    <p class="text-muted mb-3">Click the button below to start your camera</p>
+                    <button id="startCameraBtn" class="btn btn-outline-success">
+                      <i class="bi bi-camera-video me-2"></i>Start Camera
+                    </button>
+                  </div>
+                  
+                  <video id="cameraPreview" class="d-none" autoplay playsinline></video>
+                  
+                  <div class="camera-controls d-none" id="cameraControls">
+                    <button class="btn btn-outline-secondary" id="switchCameraBtn">
+                      <i class="bi bi-arrow-repeat"></i>
+                    </button>
+                    <div class="capture-btn" id="captureBtn">
+                      <div class="inner-circle"></div>
+                    </div>
+                    <button class="btn btn-outline-secondary" id="cancelCameraBtn">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </div>
+                  
+                  <canvas id="captureCanvas" class="d-none"></canvas>
+                  
+                  <div id="cameraCapturePreview" class="mt-3 d-none">
+                    <div class="d-flex align-items-center">
+                      <img id="capturedImage" class="img-thumbnail me-3" style="max-height: 100px;">
+                      <div>
+                        <p class="mb-1 fw-bold">Captured Image</p>
+                        <button type="button" id="retakeBtn" class="btn btn-sm btn-outline-secondary">
+                          <i class="bi bi-arrow-repeat"></i> Retake
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
+                
+                <form id="cameraForm">
+                  <!-- For demo purposes, we'll use a hardcoded user ID -->
+                  <input type="hidden" name="userId" value="65e5f8d0e4b0a1b2c3d4e5f6">
+                  
+                  <div class="d-grid">
+                    <button type="submit" id="analyzeCameraBtn" class="btn btn-success btn-lg" disabled>
+                      <i class="bi bi-search me-2"></i>Analyze Receipt
+                    </button>
+                  </div>
+                </form>
               </div>
-              
-              <!-- For demo purposes, we'll use a hardcoded user ID -->
-              <input type="hidden" name="userId" value="65e5f8d0e4b0a1b2c3d4e5f6">
-              
-              <div class="d-grid">
-                <button type="submit" id="analyzeBtn" class="btn btn-success btn-lg" disabled>
-                  <i class="bi bi-search me-2"></i>Analyze Receipt
-                </button>
-              </div>
-            </form>
+            </div>
             
             <div id="loadingIndicator" class="text-center my-4 d-none">
               <div class="spinner-border text-success" role="status">
@@ -110,6 +223,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // File upload elements
       const uploadForm = document.getElementById('uploadForm');
       const receiptImage = document.getElementById('receiptImage');
       const browseBtn = document.getElementById('browseBtn');
@@ -118,6 +232,23 @@
       const imagePreview = document.getElementById('imagePreview');
       const fileName = document.getElementById('fileName');
       const removeBtn = document.getElementById('removeBtn');
+      
+      // Camera elements
+      const cameraForm = document.getElementById('cameraForm');
+      const startCameraBtn = document.getElementById('startCameraBtn');
+      const cameraPlaceholder = document.getElementById('cameraPlaceholder');
+      const cameraPreview = document.getElementById('cameraPreview');
+      const cameraControls = document.getElementById('cameraControls');
+      const switchCameraBtn = document.getElementById('switchCameraBtn');
+      const captureBtn = document.getElementById('captureBtn');
+      const cancelCameraBtn = document.getElementById('cancelCameraBtn');
+      const captureCanvas = document.getElementById('captureCanvas');
+      const cameraCapturePreview = document.getElementById('cameraCapturePreview');
+      const capturedImage = document.getElementById('capturedImage');
+      const retakeBtn = document.getElementById('retakeBtn');
+      const analyzeCameraBtn = document.getElementById('analyzeCameraBtn');
+      
+      // Common elements
       const loadingIndicator = document.getElementById('loadingIndicator');
       const loadingMessage = document.getElementById('loadingMessage');
       const resultsContainer = document.getElementById('resultsContainer');
@@ -125,6 +256,131 @@
       // Store receipt ID for polling
       let currentReceiptId = null;
       let pollingInterval = null;
+      
+      // Camera stream variables
+      let stream = null;
+      let facingMode = 'environment'; // Start with back camera
+      
+      // Tab handling
+      const cameraTabs = document.querySelectorAll('button[data-bs-toggle="tab"]');
+      cameraTabs.forEach(tab => {
+        tab.addEventListener('shown.bs.tab', function(event) {
+          if (event.target.id === 'camera-tab') {
+            // Camera tab was shown
+            if (stream) {
+              cameraPreview.classList.remove('d-none');
+              cameraControls.classList.remove('d-none');
+              cameraPlaceholder.classList.add('d-none');
+            }
+          } else {
+            // Camera tab was hidden
+            stopCamera();
+          }
+        });
+      });
+      
+      // Start camera button
+      startCameraBtn.addEventListener('click', startCamera);
+      
+      // Switch camera button
+      switchCameraBtn.addEventListener('click', function() {
+        facingMode = facingMode === 'environment' ? 'user' : 'environment';
+        stopCamera();
+        startCamera();
+      });
+      
+      // Cancel camera button
+      cancelCameraBtn.addEventListener('click', function() {
+        stopCamera();
+        cameraPreview.classList.add('d-none');
+        cameraControls.classList.add('d-none');
+        cameraPlaceholder.classList.remove('d-none');
+        cameraCapturePreview.classList.add('d-none');
+        analyzeCameraBtn.disabled = true;
+      });
+      
+      // Capture button
+      captureBtn.addEventListener('click', captureImage);
+      
+      // Retake button
+      retakeBtn.addEventListener('click', function() {
+        cameraCapturePreview.classList.add('d-none');
+        cameraPreview.classList.remove('d-none');
+        cameraControls.classList.remove('d-none');
+        analyzeCameraBtn.disabled = true;
+      });
+      
+      // Function to start the camera
+      function startCamera() {
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia({
+            video: { facingMode: facingMode }
+          })
+          .then(function(mediaStream) {
+            stream = mediaStream;
+            cameraPreview.srcObject = mediaStream;
+            cameraPreview.classList.remove('d-none');
+            cameraControls.classList.remove('d-none');
+            cameraPlaceholder.classList.add('d-none');
+          })
+          .catch(function(error) {
+            console.error('Camera error:', error);
+            alert('Unable to access camera. Please ensure you have granted camera permissions.');
+          });
+        } else {
+          alert('Your browser does not support camera access. Please try uploading a file instead.');
+        }
+      }
+      
+      // Function to stop the camera
+      function stopCamera() {
+        if (stream) {
+          stream.getTracks().forEach(track => {
+            track.stop();
+          });
+          stream = null;
+        }
+      }
+      
+      // Function to capture an image from the camera
+      function captureImage() {
+        if (!stream) return;
+        
+        // Set canvas dimensions to match video
+        captureCanvas.width = cameraPreview.videoWidth;
+        captureCanvas.height = cameraPreview.videoHeight;
+        
+        // Draw the current video frame to the canvas
+        const context = captureCanvas.getContext('2d');
+        context.drawImage(cameraPreview, 0, 0, captureCanvas.width, captureCanvas.height);
+        
+        // Convert canvas to image
+        const imageDataUrl = captureCanvas.toDataURL('image/jpeg');
+        capturedImage.src = imageDataUrl;
+        
+        // Show preview and hide camera
+        cameraCapturePreview.classList.remove('d-none');
+        cameraPreview.classList.add('d-none');
+        cameraControls.classList.add('d-none');
+        
+        // Enable analyze button
+        analyzeCameraBtn.disabled = false;
+      }
+      
+      // Function to convert data URL to Blob
+      function dataURLtoBlob(dataURL) {
+        const arr = dataURL.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
+        
+        while (n--) {
+          u8arr[n] = bstr.charCodeAt(n);
+        }
+        
+        return new Blob([u8arr], { type: mime });
+      }
       
       // Browse button click handler
       browseBtn.addEventListener('click', function() {
@@ -219,10 +475,11 @@
         document.getElementById('tryAgainBtn').addEventListener('click', function() {
           resultsContainer.classList.add('d-none');
           analyzeBtn.disabled = false;
+          analyzeCameraBtn.disabled = false;
         });
       }
       
-      // Form submit handler
+      // File upload form submit handler
       uploadForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -256,6 +513,59 @@
           console.error('Error:', error);
           loadingIndicator.classList.add('d-none');
           analyzeBtn.disabled = false;
+          
+          // Show error message
+          showError('Error uploading receipt. Please try again.');
+        });
+      });
+      
+      // Camera form submit handler
+      cameraForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!capturedImage.src) {
+          alert('Please capture an image first');
+          return;
+        }
+        
+        // Show loading indicator
+        loadingIndicator.classList.remove('d-none');
+        loadingMessage.textContent = 'Uploading your receipt...';
+        analyzeCameraBtn.disabled = true;
+        
+        // Convert data URL to Blob
+        const imageBlob = dataURLtoBlob(capturedImage.src);
+        
+        // Create a File object from the Blob
+        const imageFile = new File([imageBlob], 'camera-capture.jpg', { type: 'image/jpeg' });
+        
+        // Create form data
+        const formData = new FormData();
+        formData.append('receipt', imageFile);
+        formData.append('userId', document.querySelector('input[name="userId"]').value);
+        
+        // Send request to server
+        fetch('/api/receipts/upload', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Store receipt ID for polling
+          currentReceiptId = data._id;
+          
+          // Start polling for status
+          pollReceiptStatus(currentReceiptId);
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          loadingIndicator.classList.add('d-none');
+          analyzeCameraBtn.disabled = false;
           
           // Show error message
           showError('Error uploading receipt. Please try again.');
@@ -348,10 +658,17 @@
         
         // Reset button click handler
         document.getElementById('resetBtn').addEventListener('click', function() {
+          // Reset file upload
           receiptImage.value = '';
           previewContainer.classList.add('d-none');
-          resultsContainer.classList.add('d-none');
           analyzeBtn.disabled = true;
+          
+          // Reset camera capture
+          cameraCapturePreview.classList.add('d-none');
+          analyzeCameraBtn.disabled = true;
+          
+          // Hide results
+          resultsContainer.classList.add('d-none');
           
           // Clear any polling interval
           if (pollingInterval) {
