@@ -12,20 +12,20 @@
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-success">
     <div class="container">
-      <a class="navbar-brand" href="/">EcoReceipt</a>
+      <a class="navbar-brand" href="/html/index.html">EcoReceipt</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
-            <a class="nav-link" href="/">Home</a>
+            <a class="nav-link" href="/html/index.html">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/upload">Upload Receipt</a>
+            <a class="nav-link" href="/html/upload.html">Upload Receipt</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/dashboard">Dashboard</a>
+            <a class="nav-link" href="/html/dashboard.html">Dashboard</a>
           </li>
         </ul>
       </div>
@@ -38,17 +38,11 @@
         <div class="card border-0 shadow-sm">
           <div class="card-body p-4 text-center">
             <i class="bi bi-exclamation-triangle-fill text-warning display-1 mb-4"></i>
-            <h1 class="mb-3">Error <%= error.status %></h1>
-            <p class="lead mb-4"><%= message %></p>
-            
-            <% if (error.stack && process.env.NODE_ENV === 'development') { %>
-              <div class="alert alert-danger text-start">
-                <pre class="mb-0"><%= error.stack %></pre>
-              </div>
-            <% } %>
+            <h1 class="mb-3">Error</h1>
+            <p class="lead mb-4">An error occurred</p>
             
             <div class="mt-4">
-              <a href="/" class="btn btn-success me-2">
+              <a href="/html/index.html" class="btn btn-success me-2">
                 <i class="bi bi-house-fill me-2"></i>Go Home
               </a>
               <a href="javascript:history.back()" class="btn btn-outline-secondary">

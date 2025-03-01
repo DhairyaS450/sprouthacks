@@ -12,20 +12,20 @@
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-success">
     <div class="container">
-      <a class="navbar-brand" href="/">EcoReceipt</a>
+      <a class="navbar-brand" href="/html/index.html">EcoReceipt</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
-            <a class="nav-link" href="/">Home</a>
+            <a class="nav-link" href="/html/index.html">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link active" href="/upload">Upload Receipt</a>
+            <a class="nav-link active" href="/html/upload.html">Upload Receipt</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/dashboard">Dashboard</a>
+            <a class="nav-link" href="/html/dashboard.html">Dashboard</a>
           </li>
         </ul>
       </div>
@@ -150,6 +150,13 @@
         analyzeBtn.disabled = true;
       });
       
+      // Function to get score color
+      function getScoreColor(score) {
+        if (score >= 7) return 'success';
+        if (score >= 4) return 'warning';
+        return 'danger';
+      }
+      
       // Form submit handler
       uploadForm.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -217,7 +224,7 @@
               <p class="mb-0">
                 <i class="bi bi-cloud me-2"></i>
                 <strong>Carbon Footprint:</strong> 
-                ${data.carbonFootprintDescription ? data.carbonFootprintDescription : `${data.carbonFootprint} kg CO₂`}
+                ${data.carbonFootprintDescription ? data.carbonFootprintDescription : `${data.carbonFootprint.toFixed(1)} kg CO₂`}
               </p>
             </div>
           </div>
@@ -267,33 +274,66 @@
         });
         
         html += `
-          <div class="d-grid gap-2 mt-4">
-            <a href="/dashboard" class="btn btn-success">
+          <div class="d-flex justify-content-between mt-4">
+            <a href="/html/dashboard.html" class="btn btn-outline-success">
               <i class="bi bi-bar-chart-fill me-2"></i>View Dashboard
             </a>
-            <button type="button" id="newUploadBtn" class="btn btn-outline-secondary">
-              <i class="bi bi-upload me-2"></i>Upload Another Receipt
+            <button type="button" id="resetBtn" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-repeat me-2"></i>Upload Another
             </button>
           </div>
         `;
         
         resultsContainer.innerHTML = html;
         
-        // Add event listener for new upload button
-        document.getElementById('newUploadBtn').addEventListener('click', function() {
-          // Reset form
-          uploadForm.reset();
+        // Reset button click handler
+        document.getElementById('resetBtn').addEventListener('click', function() {
+          receiptImage.value = '';
           previewContainer.classList.add('d-none');
           resultsContainer.classList.add('d-none');
           analyzeBtn.disabled = true;
         });
       }
       
-      // Function to get color based on score
-      function getScoreColor(score) {
-        if (score >= 7) return 'success';
-        if (score >= 4) return 'warning';
-        return 'danger';
+      // Add drag and drop functionality
+      const uploadArea = document.querySelector('.upload-area');
+      
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+      });
+      
+      function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      
+      ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, highlight, false);
+      });
+      
+      ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, unhighlight, false);
+      });
+      
+      function highlight() {
+        uploadArea.classList.add('border-success');
+      }
+      
+      function unhighlight() {
+        uploadArea.classList.remove('border-success');
+      }
+      
+      uploadArea.addEventListener('drop', handleDrop, false);
+      
+      function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length) {
+          receiptImage.files = files;
+          const event = new Event('change');
+          receiptImage.dispatchEvent(event);
+        }
       }
     });
   </script>
