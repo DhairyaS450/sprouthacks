@@ -15,15 +15,26 @@ const { seedDefaultUser, seedLeaderboardUsers } = require('./utils/seedData');
 // Import Cloudinary configuration
 const { isCloudinaryConfigured } = require('./utils/cloudinaryConfig');
 
+// Import uploads directory utility
+const { ensureUploadsDirectory } = require('./utils/ensureUploadsDir');
+
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Ensure uploads directory exists
+ensureUploadsDirectory();
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Explicitly serve files from the uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 
 // Check Cloudinary configuration
 if (isCloudinaryConfigured()) {

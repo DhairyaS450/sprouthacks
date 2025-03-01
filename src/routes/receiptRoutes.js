@@ -7,11 +7,8 @@ const mongoose = require('mongoose');
 const Receipt = require('../models/Receipt');
 const { analyzeReceiptWithGemini } = require('../utils/geminiUtils');
 
-// Ensure uploads directory exists
+// Define uploads directory path (directory creation is handled in server.js)
 const uploadsDir = path.join(__dirname, '../public/uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
 
 // Set up multer for file uploads
 const storage = multer.diskStorage({
@@ -100,7 +97,6 @@ router.post('/upload', upload.single('receipt'), async (req, res) => {
           _id: 'mock-receipt-id',
           user: userId,
           imagePath: '/uploads/' + req.file.filename,
-          extractedText: extractedText,
           products: analysis.products || [],
           overallScore: analysis.overallScore || 5,
           carbonFootprint: typeof analysis.carbonFootprint === 'number' ? analysis.carbonFootprint : 0,
