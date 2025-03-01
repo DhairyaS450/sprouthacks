@@ -36,6 +36,10 @@ const receiptSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  extractedText: {
+    type: String,
+    default: ''
+  },
   products: [productSchema],
   overallScore: {
     type: Number,
@@ -50,6 +54,11 @@ const receiptSchema = new mongoose.Schema({
   carbonFootprintDescription: {
     type: String,
     default: ''
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'completed', 'failed'],
+    default: 'pending'
   },
   analysisDate: {
     type: Date,

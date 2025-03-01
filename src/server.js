@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const maxDuration = 60; // 5 minutes
 
 // Import routes
 const receiptRoutes = require('./routes/receiptRoutes');

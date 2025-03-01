@@ -81,7 +81,7 @@
               <div class="spinner-border text-success" role="status">
                 <span class="visually-hidden">Loading...</span>
               </div>
-              <p class="mt-2">Analyzing your receipt with AI...</p>
+              <p class="mt-2" id="loadingMessage">Uploading your receipt...</p>
             </div>
             
             <div id="resultsContainer" class="mt-4 d-none">
@@ -119,7 +119,12 @@
       const fileName = document.getElementById('fileName');
       const removeBtn = document.getElementById('removeBtn');
       const loadingIndicator = document.getElementById('loadingIndicator');
+      const loadingMessage = document.getElementById('loadingMessage');
       const resultsContainer = document.getElementById('resultsContainer');
+      
+      // Store receipt ID for polling
+      let currentReceiptId = null;
+      let pollingInterval = null;
       
       // Browse button click handler
       browseBtn.addEventListener('click', function() {
@@ -157,12 +162,73 @@
         return 'danger';
       }
       
+      // Function to poll for receipt status
+      function pollReceiptStatus(receiptId) {
+        loadingMessage.textContent = 'Analyzing your receipt with AI...';
+        
+        // Clear any existing interval
+        if (pollingInterval) {
+          clearInterval(pollingInterval);
+        }
+        
+        // Set up polling
+        pollingInterval = setInterval(() => {
+          fetch(`/api/receipts/status/${receiptId}`)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok');
+              }
+              return response.json();
+            })
+            .then(data => {
+              if (data.status === 'completed') {
+                // Analysis is complete
+                clearInterval(pollingInterval);
+                loadingIndicator.classList.add('d-none');
+                displayResults(data.receipt);
+              } else if (data.status === 'failed') {
+                // Analysis failed
+                clearInterval(pollingInterval);
+                loadingIndicator.classList.add('d-none');
+                showError('Analysis failed. Please try again.');
+              }
+              // If status is still 'pending', continue polling
+            })
+            .catch(error => {
+              console.error('Error polling status:', error);
+              clearInterval(pollingInterval);
+              loadingIndicator.classList.add('d-none');
+              showError('Error checking analysis status. Please try again.');
+            });
+        }, 2000); // Poll every 2 seconds
+      }
+      
+      // Function to show error message
+      function showError(message) {
+        resultsContainer.classList.remove('d-none');
+        resultsContainer.innerHTML = `
+          <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            ${message}
+          </div>
+          <button type="button" id="tryAgainBtn" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-repeat me-2"></i>Try Again
+          </button>
+        `;
+        
+        document.getElementById('tryAgainBtn').addEventListener('click', function() {
+          resultsContainer.classList.add('d-none');
+          analyzeBtn.disabled = false;
+        });
+      }
+      
       // Form submit handler
       uploadForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
         // Show loading indicator
         loadingIndicator.classList.remove('d-none');
+        loadingMessage.textContent = 'Uploading your receipt...';
         analyzeBtn.disabled = true;
         
         // Create form data
@@ -180,11 +246,11 @@
           return response.json();
         })
         .then(data => {
-          // Hide loading indicator
-          loadingIndicator.classList.add('d-none');
+          // Store receipt ID for polling
+          currentReceiptId = data._id;
           
-          // Display results
-          displayResults(data);
+          // Start polling for status
+          pollReceiptStatus(currentReceiptId);
         })
         .catch(error => {
           console.error('Error:', error);
@@ -192,13 +258,7 @@
           analyzeBtn.disabled = false;
           
           // Show error message
-          resultsContainer.classList.remove('d-none');
-          resultsContainer.innerHTML = `
-            <div class="alert alert-danger">
-              <i class="bi bi-exclamation-triangle-fill me-2"></i>
-              Error analyzing receipt. Please try again.
-            </div>
-          `;
+          showError('Error uploading receipt. Please try again.');
         });
       });
       
@@ -292,6 +352,15 @@
           previewContainer.classList.add('d-none');
           resultsContainer.classList.add('d-none');
           analyzeBtn.disabled = true;
+          
+          // Clear any polling interval
+          if (pollingInterval) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+          }
+          
+          // Reset receipt ID
+          currentReceiptId = null;
         });
       }
       
