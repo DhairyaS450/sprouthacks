@@ -29,6 +29,11 @@ const userSchema = new mongoose.Schema({
     type: Map,
     of: String,
     default: {}
+  },
+  token: {
+    type: String,
+    default: null,
+    sparse: true // This allows multiple null values
   }
 });
 
