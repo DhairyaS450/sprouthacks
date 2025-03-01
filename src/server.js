@@ -23,9 +23,6 @@ const { ensureUploadsDirectory } = require('./utils/ensureUploadsDir');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Ensure uploads directory exists
-ensureUploadsDirectory();
-
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
