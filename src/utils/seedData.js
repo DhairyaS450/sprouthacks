@@ -25,7 +25,7 @@ async function seedDefaultUser() {
     const defaultUser = new User({
       _id: '65e5f8d0e4b0a1b2c3d4e5f6',
       username: 'EcoUser',
-      email: 'user@ecotracker.com',
+      email: 'user@EcoReceipt.com',
       password: 'password123', // In a real app, this would be hashed
       ecoPoints: 150
     });
@@ -40,7 +40,7 @@ async function seedDefaultUser() {
     return {
       _id: '65e5f8d0e4b0a1b2c3d4e5f6',
       username: 'EcoUser',
-      email: 'user@ecotracker.com',
+      email: 'user@EcoReceipt.com',
       ecoPoints: 150
     };
   }
@@ -60,25 +60,25 @@ async function seedLeaderboardUsers() {
     const leaderboardUsers = [
       {
         username: 'GreenGuru',
-        email: 'guru@ecotracker.com',
+        email: 'guru@EcoReceipt.com',
         password: 'password123',
         ecoPoints: 230
       },
       {
         username: 'EcoWarrior',
-        email: 'warrior@ecotracker.com',
+        email: 'warrior@EcoReceipt.com',
         password: 'password123',
         ecoPoints: 185
       },
       {
         username: 'SustainableShopper',
-        email: 'shopper@ecotracker.com',
+        email: 'shopper@EcoReceipt.com',
         password: 'password123',
         ecoPoints: 120
       },
       {
         username: 'PlanetProtector',
-        email: 'protector@ecotracker.com',
+        email: 'protector@EcoReceipt.com',
         password: 'password123',
         ecoPoints: 95
       }

@@ -1,4 +1,4 @@
-# EcoTracker - AI-Powered Sustainability Tracker
+# EcoReceipt - AI-Powered Sustainability Tracker
 
 A web application that allows users to upload receipts (images or text) and uses Google's Gemini AI to analyze purchases for sustainability impact, offering eco-friendly product alternatives.
 
