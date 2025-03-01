@@ -1,39 +1,37 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { parseReceiptText } = require('./ocrUtils');
+const fs = require('fs');
 
 // Initialize the Gemini API
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy-api-key');
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
+// Converts local image file information to base64
+function fileToGenerativePart(path, mimeType) {
+  return {
+    inlineData: {
+      data: Buffer.from(fs.readFileSync(path)).toString("base64"),
+      mimeType
+    },
+  };
+}
+
 /**
- * Analyze receipt text with Gemini to get sustainability insights
- * @param {string} receiptText - Extracted text from receipt
+ * Analyze receipt with Gemini to get sustainability insights
+ * @param {string} receiptPath - Path to receipt image
  * @returns {Object} - Analysis results including products, scores, and recommendations
  */
-async function analyzeReceiptWithGemini(receiptText) {
+async function analyzeReceiptWithGemini(receiptPath) {
   try {
     console.log('Starting Gemini analysis...');
     
-    // Parse receipt text to extract products and prices
-    const parsedProducts = parseReceiptText(receiptText);
-    
-    if (parsedProducts.length === 0) {
-      console.error('No products found in receipt');
-      throw new Error('No products found in receipt');
-    }
-    
-    console.log('Parsed products for analysis:', parsedProducts);
-    
-    // Check if we have a valid API key
-    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'dummy-api-key') {
-      console.log('No valid Gemini API key found, returning mock analysis');
-      return getMockAnalysis(parsedProducts);
-    }
+    const files = [
+      fileToGenerativePart(receiptPath, 'image/jpeg'),
+    ]
     
     // Create a prompt for Gemini
     const prompt = `
-    Analyze the following products from a receipt for their sustainability impact:
-    ${parsedProducts.map(p => `${p.name} - $${p.price}`).join('\n')}
+    Analyze the following picture of a receipt for their sustainability impact like this:
     
     For each product:
     1. Provide a sustainability score from 0-10 (0 being least sustainable, 10 being most sustainable)
@@ -69,10 +67,11 @@ async function analyzeReceiptWithGemini(receiptText) {
     console.log('Sending prompt to Gemini...');
     
     // Get response from Gemini
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent([prompt, ...files]);
     const responseText = result.response.text();
     
-    console.log('Received response from Gemini');
+    console.log('Received response from Gemini:');
+    console.log(responseText);
     
     // Parse the JSON response
     // We need to extract the JSON part from the response
@@ -113,15 +112,9 @@ async function analyzeReceiptWithGemini(receiptText) {
     } catch (jsonError) {
       console.error('Failed to parse Gemini response as JSON:', jsonError);
       console.log('Response text:', responseText);
-      
-      // Fallback: create a basic analysis with the parsed products
-      return getMockAnalysis(parsedProducts);
     }
   } catch (error) {
     console.error('Gemini Analysis Error:', error);
-    
-    // Return mock analysis for demo purposes
-    return getMockAnalysis(parseReceiptText(receiptText));
   }
 }
 
