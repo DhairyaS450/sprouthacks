@@ -7,14 +7,15 @@ const mongoose = require('mongoose');
 const Receipt = require('../models/Receipt');
 const { extractTextFromImage } = require('../utils/ocrUtils');
 const { analyzeReceiptWithGemini } = require('../utils/geminiUtils');
+const { cloudinaryUpload, isCloudinaryConfigured, cloudinary } = require('../utils/cloudinaryConfig');
 
-// Ensure uploads directory exists
+// Ensure uploads directory exists for local storage
 const uploadsDir = path.join(__dirname, '../public/uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Set up multer for file uploads
+// Set up multer for local file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadsDir);
@@ -24,7 +25,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
+const localUpload = multer({ 
   storage: storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
@@ -64,8 +65,28 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Determine which upload middleware to use based on environment
+const getUploadMiddleware = () => {
+  if (isCloudinaryConfigured()) {
+    console.log('Using Cloudinary for file uploads');
+    return cloudinaryUpload;
+  } else {
+    console.log('Using local storage for file uploads');
+    return localUpload;
+  }
+};
+
 // Upload and analyze a new receipt
-router.post('/upload', upload.single('receipt'), async (req, res) => {
+router.post('/upload', (req, res, next) => {
+  const uploadMiddleware = getUploadMiddleware();
+  uploadMiddleware.single('receipt')(req, res, (err) => {
+    if (err) {
+      console.error('File upload error:', err);
+      return res.status(400).json({ message: err.message });
+    }
+    next();
+  });
+}, async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -77,9 +98,31 @@ router.post('/upload', upload.single('receipt'), async (req, res) => {
     // For demo purposes, if no userId is provided, use a default one
     const userId = req.body.userId || '65e5f8d0e4b0a1b2c3d4e5f6';
 
+    // Determine the file path for OCR processing
+    let filePath;
+    let imagePath;
+    
+    if (req.file.path) {
+      // Local storage
+      filePath = req.file.path;
+      imagePath = '/uploads/' + req.file.filename;
+    } else if (req.file.cloudinary_url) {
+      // Cloudinary (old format)
+      filePath = req.file.cloudinary_url;
+      imagePath = req.file.cloudinary_url;
+    } else if (req.file.path && isCloudinaryConfigured()) {
+      // Local path but we're using Cloudinary
+      filePath = req.file.path;
+      imagePath = req.file.path;
+    } else if (req.file.filename && isCloudinaryConfigured()) {
+      // Cloudinary with multer-storage-cloudinary
+      filePath = req.file.path || req.file.secure_url;
+      imagePath = req.file.secure_url || req.file.path;
+    }
+
     // Extract text from the receipt image
     try {
-      const extractedText = await extractTextFromImage(req.file.path);
+      const extractedText = await extractTextFromImage(filePath);
       console.log('Extracted text:', extractedText);
       
       // Analyze the receipt with Gemini
@@ -89,7 +132,7 @@ router.post('/upload', upload.single('receipt'), async (req, res) => {
       // Create a new receipt record
       const receipt = new Receipt({
         user: userId,
-        imagePath: '/uploads/' + req.file.filename,
+        imagePath: imagePath,
         extractedText: extractedText,
         products: analysis.products || [],
         overallScore: analysis.overallScore || 5,
@@ -103,7 +146,7 @@ router.post('/upload', upload.single('receipt'), async (req, res) => {
         return res.status(201).json({
           _id: 'mock-receipt-id',
           user: userId,
-          imagePath: '/uploads/' + req.file.filename,
+          imagePath: imagePath,
           extractedText: extractedText,
           products: analysis.products || [],
           overallScore: analysis.overallScore || 5,
@@ -161,7 +204,7 @@ router.post('/upload', upload.single('receipt'), async (req, res) => {
       res.status(201).json({
         _id: 'mock-receipt-id',
         user: userId,
-        imagePath: '/uploads/' + req.file.filename,
+        imagePath: imagePath,
         extractedText: "Sample receipt text (OCR failed)",
         products: mockAnalysis.products,
         overallScore: mockAnalysis.overallScore,

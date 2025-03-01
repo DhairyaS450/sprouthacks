@@ -1,95 +1,137 @@
-# EcoReceipt - AI-Powered Sustainability Tracker
+# EcoReceipt - Sustainable Shopping Assistant
 
-A web application that allows users to upload receipts (images or text) and uses Google's Gemini AI to analyze purchases for sustainability impact, offering eco-friendly product alternatives.
-
-Created during the SproutHacks 2025 hackathon in 36 hours.
+EcoReceipt is a web application that helps users make more sustainable shopping choices by analyzing their receipts and providing eco-friendly alternatives.
 
 ## Features
 
-- **Receipt Upload & OCR Extraction**: Upload an image/PDF of a receipt and extract text using OCR
-- **Sustainability Analysis**: Gemini AI identifies non-sustainable purchases and gives a sustainability rating
-- **Eco-Friendly Product Recommendations**: Suggests sustainable alternatives with links to purchase
-- **User Profile & History**: View past receipt analyses and track sustainability progress
-- **Gamification**: Earn "eco points" for sustainable purchases and compete on the leaderboard
-- **Carbon Footprint Calculation**: Estimate CO₂ impact of purchases
+- Upload and analyze shopping receipts
+- Get sustainability scores for products
+- Discover eco-friendly alternatives
+- Track your sustainability journey with a dashboard
+- Compete on the eco-leaderboard
 
-## Tech Stack
+## Technologies Used
 
-- **Frontend**: HTML, CSS, JavaScript, Bootstrap 5
-- **Backend**: Node.js, Express
-- **Database**: MongoDB
-- **AI**: Google Gemini API
-- **OCR**: Tesseract.js
-- **Authentication**: (Basic implementation for demo)
+- Node.js and Express
+- MongoDB for database
+- Google's Gemini AI for sustainability analysis
+- Tesseract.js for OCR (Optical Character Recognition)
+- Bootstrap for UI
+- Cloudinary for file storage in production
 
-## Setup
+## Local Development
 
-1. Clone the repository:
+### Prerequisites
+
+- Node.js (v14 or higher)
+- MongoDB (local or cloud instance)
+- Google Gemini API key
+
+### Setup
+
+1. Clone the repository
    ```
-   git clone https://github.com/yourusername/eco-tracker.git
-   cd eco-tracker
+   git clone https://github.com/yourusername/eco-receipt.git
+   cd eco-receipt
    ```
 
-2. Install dependencies:
+2. Install dependencies
    ```
    npm install
    ```
 
-3. Create a `.env` file in the root directory with the following variables:
+3. Create a `.env` file based on `.env.example`
    ```
-   GEMINI_API_KEY=your_gemini_api_key
-   MONGODB_URI=your_mongodb_connection_string
-   PORT=3000
+   cp .env.example .env
    ```
 
-4. Start the application:
-   ```
-   npm start
-   ```
+4. Update the `.env` file with your credentials:
+   - `MONGODB_URI`: Your MongoDB connection string
+   - `GEMINI_API_KEY`: Your Google Gemini API key
+   - (Optional) Cloudinary credentials if you want to test cloud storage locally
 
-5. For development with auto-restart:
+5. Start the development server
    ```
    npm run dev
    ```
 
-## Project Structure
+6. Open http://localhost:3000 in your browser
 
-```
-eco-tracker/
-├── src/
-│   ├── controllers/    # Route controllers
-│   ├── models/         # MongoDB models
-│   ├── public/         # Static assets
-│   │   ├── css/        # Stylesheets
-│   │   ├── js/         # Client-side JavaScript
-│   │   └── uploads/    # Uploaded receipts
-│   ├── routes/         # API routes
-│   ├── utils/          # Utility functions
-│   ├── views/          # EJS templates
-│   └── server.js       # Main application file
-├── .env                # Environment variables
-├── package.json        # Dependencies and scripts
-└── README.md           # Project documentation
-```
+## Deployment to Vercel
 
-## API Endpoints
+### Prerequisites
 
-- `GET /api/users/:id` - Get user profile
-- `POST /api/users` - Create new user
-- `PATCH /api/users/:id` - Update user
-- `GET /api/users/leaderboard/top` - Get top users by eco points
-- `GET /api/receipts/user/:userId` - Get all receipts for a user
-- `GET /api/receipts/:id` - Get a specific receipt
-- `POST /api/receipts/upload` - Upload and analyze a new receipt
+- Vercel account
+- MongoDB Atlas account (for cloud database)
+- Google Gemini API key
+- Cloudinary account (for file storage)
 
-## Future Enhancements
+### Deployment Steps
 
-- Mobile app version
-- Social sharing features
-- Integration with grocery store loyalty programs
-- Barcode scanning for in-store sustainability checks
-- Monthly sustainability reports and challenges
+1. Install Vercel CLI
+   ```
+   npm install -g vercel
+   ```
+
+2. Login to Vercel
+   ```
+   vercel login
+   ```
+
+3. Deploy to Vercel
+   ```
+   vercel
+   ```
+
+4. Set up environment variables in the Vercel dashboard:
+   - `MONGODB_URI`: Your MongoDB Atlas connection string
+   - `GEMINI_API_KEY`: Your Google Gemini API key
+   - `CLOUDINARY_CLOUD_NAME`: Your Cloudinary cloud name
+   - `CLOUDINARY_API_KEY`: Your Cloudinary API key
+   - `CLOUDINARY_API_SECRET`: Your Cloudinary API secret
+
+5. Redeploy with production settings
+   ```
+   vercel --prod
+   ```
+
+## Cloudinary Integration
+
+EcoReceipt uses Cloudinary for file storage in production environments. This ensures that receipt uploads work properly in serverless environments like Vercel.
+
+### How It Works
+
+1. The application checks for Cloudinary credentials at startup
+2. If credentials are found, all file uploads are stored in Cloudinary
+3. If credentials are not found, the application falls back to local storage (for development)
+
+### Setting Up Cloudinary
+
+1. Create a free account at [Cloudinary](https://cloudinary.com/)
+2. From your dashboard, get your cloud name, API key, and API secret
+3. Add these credentials to your environment variables:
+   ```
+   CLOUDINARY_CLOUD_NAME=your_cloud_name
+   CLOUDINARY_API_KEY=your_api_key
+   CLOUDINARY_API_SECRET=your_api_secret
+   ```
+
+### Testing Cloudinary Locally
+
+To test Cloudinary integration in your local development environment:
+
+1. Add your Cloudinary credentials to your `.env` file
+2. Restart the development server
+3. Upload a receipt - it should now be stored in your Cloudinary account
+4. You can verify this by checking the Cloudinary Media Library in your dashboard
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project was created for SproutHacks and is available under the MIT License.
+
+## Acknowledgements
+
+- Created for SproutHacks
+- Powered by Google's Gemini AI
+- OCR functionality provided by Tesseract.js
+- File storage powered by Cloudinary

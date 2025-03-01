@@ -12,6 +12,9 @@ const userRoutes = require('./routes/userRoutes');
 // Import seed data functions
 const { seedDefaultUser, seedLeaderboardUsers } = require('./utils/seedData');
 
+// Import Cloudinary configuration
+const { isCloudinaryConfigured } = require('./utils/cloudinaryConfig');
+
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,8 +25,20 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Check Cloudinary configuration
+if (isCloudinaryConfigured()) {
+  console.log('Cloudinary is configured and ready for file uploads');
+} else {
+  console.log('Cloudinary is not configured. Using local file storage for uploads.');
+}
+
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/eco-tracker')
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/eco-tracker';
+mongoose.connect(MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of 30s
+})
   .then(() => {
     console.log('Connected to MongoDB');
     

@@ -2,3 +2,4 @@ node_modules
 src/public/uploads/
 .env
 .env.local
+.vercel
