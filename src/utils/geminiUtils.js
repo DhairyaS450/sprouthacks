@@ -1,32 +1,67 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { parseReceiptText } = require('./ocrUtils');
 const fs = require('fs');
+const axios = require('axios');
+const { isCloudinaryConfigured } = require('./cloudinaryConfig');
 
 // Initialize the Gemini API
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'dummy-api-key');
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 // Converts local image file information to base64
-function fileToGenerativePart(path, mimeType) {
-  return {
-    inlineData: {
-      data: Buffer.from(fs.readFileSync(path)).toString("base64"),
-      mimeType
-    },
-  };
+async function fileToGenerativePart(path, mimeType) {
+  try {
+    let imageData;
+    
+    // Check if the path is a URL (Cloudinary)
+    if (path.startsWith('http')) {
+      console.log('Downloading image from URL for Gemini analysis:', path);
+      const response = await axios.get(path, { responseType: 'arraybuffer' });
+      imageData = Buffer.from(response.data);
+    } else {
+      // Local file path
+      if (!fs.existsSync(path)) {
+        throw new Error(`File does not exist: ${path}`);
+      }
+      imageData = fs.readFileSync(path);
+    }
+    
+    return {
+      inlineData: {
+        data: imageData.toString("base64"),
+        mimeType
+      },
+    };
+  } catch (error) {
+    console.error('Error preparing file for Gemini:', error);
+    throw error;
+  }
 }
 
 /**
  * Analyze receipt with Gemini to get sustainability insights
- * @param {string} receiptPath - Path to receipt image
+ * @param {string} receiptPath - Path to receipt image or Cloudinary URL
  * @returns {Object} - Analysis results including products, scores, and recommendations
  */
 async function analyzeReceiptWithGemini(receiptPath) {
   try {
     console.log('Starting Gemini analysis...');
     
+    // Check if we have a valid API key
+    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'dummy-api-key') {
+      console.log('No valid Gemini API key found, using mock analysis');
+    }
+    
+    // Determine MIME type based on file path
+    let mimeType = 'image/jpeg';
+    if (receiptPath.toLowerCase().endsWith('.png')) {
+      mimeType = 'image/png';
+    } else if (receiptPath.toLowerCase().endsWith('.pdf')) {
+      mimeType = 'application/pdf';
+    }
+    
     const files = [
-      fileToGenerativePart(receiptPath, 'image/jpeg'),
+      await fileToGenerativePart(receiptPath, mimeType),
     ]
     
     // Create a prompt for Gemini
