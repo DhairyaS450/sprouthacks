@@ -275,8 +275,11 @@ async function analyzeProductWithGemini(productImagePath) {
     4. Suggest 1-3 more sustainable alternatives with links (use Amazon or local store links)
 
     Notes:
-    - Don't be overly critical, be realistic and reasonable
+    - Don't be overly critical, be realistic and reasonable. 
+       - For example, if the product is a plastic water bottle, don't say it's the worst thing ever, say it's made of plastic and that's not good.
+       - But if it's a metal water bottle, say that's good and give a high score because it's metal and that's good.
     - Be positive and encouraging
+       - Emphasize the positive impact of the product if it's sustainable
     - Be concise and to the point
 
     Format your response as a JSON object with the following structure:
