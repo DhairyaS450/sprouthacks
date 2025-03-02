@@ -273,7 +273,12 @@ async function analyzeProductWithGemini(productImagePath) {
     2. Provide a sustainability score from 0-10 (0 being least sustainable, 10 being most sustainable)
     3. Explain the environmental impact of this product
     4. Suggest 1-3 more sustainable alternatives with links (use Amazon or local store links)
-    
+
+    Notes:
+    - Don't be overly critical, be realistic and reasonable
+    - Be positive and encouraging
+    - Be concise and to the point
+
     Format your response as a JSON object with the following structure:
     {
       "name": "Product Name",
