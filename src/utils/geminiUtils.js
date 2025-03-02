@@ -73,6 +73,15 @@ async function analyzeReceiptWithGemini(receiptPath) {
     2. Explain the environmental impact of this product
     3. Suggest 1-2 more sustainable alternatives with links (use Amazon or local store links)
     
+    Notes:
+    - Don't be overly critical, be realistic and reasonable. 
+       - For example, if the product is a plastic water bottle, don't say it's the worst thing ever, say it's made of plastic and that's not good.
+       - But if it's a metal water bottle, say that's good and give a high score 8-9 / 10 because it's metal and that's good.
+       - If something is near-perfect or perfect, give it a 10.
+    - Be positive and encouraging
+       - Emphasize the positive impact of the product if it's sustainable
+    - Be concise and to the point
+
     Also provide:
     - An overall sustainability score for the entire purchase (0-10)
     - An estimated carbon footprint in kg of CO2
@@ -180,7 +189,7 @@ function getMockAnalysis(products) {
         alternatives = [
           {
             name: `Even More Sustainable ${product.name}`,
-            link: `https://www.amazon.com/s?k=sustainable+${encodeURIComponent(product.name)}`,
+            link: `https://www.google.com/s?k=sustainable+${encodeURIComponent(product.name)}`,
             description: "This alternative has an even lower environmental footprint."
           }
         ];
@@ -194,12 +203,12 @@ function getMockAnalysis(products) {
         alternatives = [
           {
             name: `Eco-Friendly Alternative to ${product.name}`,
-            link: `https://www.amazon.com/s?k=eco+friendly+alternative+to+${encodeURIComponent(product.name)}`,
+            link: `https://www.google.com/s?k=eco+friendly+alternative+to+${encodeURIComponent(product.name)}`,
             description: "This sustainable alternative reduces environmental impact."
           },
           {
             name: `Reusable ${product.name}`,
-            link: `https://www.amazon.com/s?k=reusable+${encodeURIComponent(product.name)}`,
+            link: `https://www.google.com/s?k=reusable+${encodeURIComponent(product.name)}`,
             description: "Reusable options help reduce waste and save money over time."
           }
         ];
@@ -210,7 +219,7 @@ function getMockAnalysis(products) {
         alternatives = [
           {
             name: `Sustainable ${product.name}`,
-            link: `https://www.amazon.com/s?k=sustainable+${encodeURIComponent(product.name)}`,
+            link: `https://www.google.com/s?k=sustainable+${encodeURIComponent(product.name)}`,
             description: "This alternative is more environmentally friendly."
           }
         ];
@@ -274,6 +283,15 @@ async function analyzeProductWithGemini(productImagePath, customInstructions = '
     2. Provide a sustainability score from 0-10 (0 being least sustainable, 10 being most sustainable)
     3. Explain the environmental impact of this product
     4. Suggest 1-3 more sustainable alternatives with links (use Amazon or local store links)
+
+    Notes:
+    - Don't be overly critical, be realistic and reasonable. 
+       - For example, if the product is a plastic water bottle, don't say it's the worst thing ever, say it's made of plastic and that's not good.
+       - But if it's a metal water bottle, say that's good and give a high score 8-9 / 10 because it's metal and that's good.
+       - If something is near-perfect or perfect, give it a 10.
+    - Be positive and encouraging
+       - Emphasize the positive impact of the product if it's sustainable
+    - Be concise and to the point
     `;
     
     // Add custom instructions if provided
