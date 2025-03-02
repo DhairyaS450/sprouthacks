@@ -243,9 +243,10 @@ function getMockAnalysis(products) {
 /**
  * Analyze product with Gemini to get sustainability insights
  * @param {string} productImagePath - Path to product image or Cloudinary URL
+ * @param {string} customInstructions - Optional custom instructions for personalized recommendations
  * @returns {Object} - Analysis results including sustainability score and alternatives
  */
-async function analyzeProductWithGemini(productImagePath) {
+async function analyzeProductWithGemini(productImagePath, customInstructions = '') {
   try {
     console.log('Starting Gemini product analysis...');
     
@@ -266,23 +267,21 @@ async function analyzeProductWithGemini(productImagePath) {
     ]
     
     // Create a prompt for Gemini
-    const prompt = `
+    let prompt = `
     Analyze the following picture of a product for its sustainability impact:
     
     1. Identify what the product is
     2. Provide a sustainability score from 0-10 (0 being least sustainable, 10 being most sustainable)
     3. Explain the environmental impact of this product
     4. Suggest 1-3 more sustainable alternatives with links (use Amazon or local store links)
-
-    Notes:
-    - Don't be overly critical, be realistic and reasonable. 
-       - For example, if the product is a plastic water bottle, don't say it's the worst thing ever, say it's made of plastic and that's not good.
-       - But if it's a metal water bottle, say that's good and give a high score because it's metal and that's good.
-    - Be positive and encouraging
-       - Emphasize the positive impact of the product if it's sustainable
-    - Be concise and to the point
-
-    Format your response as a JSON object with the following structure:
+    `;
+    
+    // Add custom instructions if provided
+    if (customInstructions) {
+      prompt += `\n\nAdditional context from the user: "${customInstructions}"\n\nPlease consider these preferences when suggesting alternatives and provide personalized advice based on these instructions.`;
+    }
+    
+    prompt += `\n\nFormat your response as a JSON object with the following structure:
     {
       "name": "Product Name",
       "sustainabilityScore": score,
@@ -293,9 +292,14 @@ async function analyzeProductWithGemini(productImagePath) {
           "link": "https://link-to-product",
           "description": "Why this is more sustainable"
         }
-      ]
+      ]`;
+    
+    // Add personalizedAdvice field if custom instructions were provided
+    if (customInstructions) {
+      prompt += `,\n      "personalizedAdvice": "Advice tailored to the user's specific preferences"`;
     }
-    `;
+    
+    prompt += `\n    }\n`;
     
     console.log('Sending product prompt to Gemini...');
     

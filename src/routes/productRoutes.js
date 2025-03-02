@@ -61,23 +61,25 @@ router.post('/analyze', getUploadMiddleware().single('image'), async (req, res) 
       throw new Error('No file path or URL available');
     }
     
+    // Get custom instructions if provided
+    const customInstructions = req.body.customInstructions || '';
+    console.log('Custom instructions:', customInstructions);
+    
     // For demo purposes, return mock data immediately
     // In production, you would call the Gemini API here
-    // const mockProductAnalysis = getMockProductAnalysis();
+    // const mockProductAnalysis = getMockProductAnalysis(customInstructions);
     
     // res.json(mockProductAnalysis);
     
     // Uncomment this for real implementation with Gemini API
-    
     // Process the product analysis asynchronously
-    const analysis = await analyzeProductWithGemini(imagePath);
+    const analysis = await analyzeProductWithGemini(imagePath, customInstructions);
     
     if (!analysis) {
       throw new Error('Failed to analyze product');
     }
     
     res.json(analysis);
-    
   } catch (error) {
     console.error('Error analyzing product:', error);
     res.status(500).json({ 
@@ -89,9 +91,10 @@ router.post('/analyze', getUploadMiddleware().single('image'), async (req, res) 
 
 /**
  * Generate a mock product analysis for demo purposes
+ * @param {string} customInstructions - Optional custom instructions for personalized recommendations
  * @returns {Object} - Mock product analysis results
  */
-function getMockProductAnalysis() {
+function getMockProductAnalysis(customInstructions = '') {
   // Randomly select one of several mock products
   const mockProducts = [
     {
@@ -159,8 +162,33 @@ function getMockProductAnalysis() {
     }
   ];
   
-  // Return a random product from the mock list
-  return mockProducts[Math.floor(Math.random() * mockProducts.length)];
+  // Get a random product from the mock list
+  const result = mockProducts[Math.floor(Math.random() * mockProducts.length)];
+  
+  // Add personalized advice if custom instructions were provided
+  if (customInstructions) {
+    if (customInstructions.toLowerCase().includes('budget') || 
+        customInstructions.toLowerCase().includes('afford')) {
+      if (result.name === "Plastic Water Bottle") {
+        result.personalizedAdvice = "Based on your budget concerns, consider a basic reusable plastic water bottle as a more affordable alternative. While not as durable as stainless steel, it's still much better for the environment than single-use bottles and will save you money over time.";
+      } else if (result.name === "Conventional Bananas") {
+        result.personalizedAdvice = "Given your budget constraints, conventional bananas are already a relatively sustainable choice. If you can occasionally afford organic, prioritize it for foods where pesticide exposure is higher.";
+      } else if (result.name === "Paper Towels") {
+        result.personalizedAdvice = "For budget-conscious households, consider cutting up old t-shirts or towels as reusable cleaning cloths instead of purchasing new alternatives. This costs nothing and reduces waste.";
+      } else if (result.name === "Laundry Detergent (Plastic Bottle)") {
+        result.personalizedAdvice = "To save money while being more eco-friendly, look for concentrated detergents that require less product per wash, or try making your own using simple ingredients like baking soda and vinegar.";
+      }
+    } else if (customInstructions.toLowerCase().includes('local') || 
+              customInstructions.toLowerCase().includes('domestic')) {
+      result.personalizedAdvice = "Since you prefer local products, check farmers markets or local manufacturers for alternatives to reduce transportation emissions and support your local economy.";
+    } else if (customInstructions.toLowerCase().includes('allerg')) {
+      result.personalizedAdvice = "With your allergy concerns in mind, always check ingredient lists carefully. Many eco-friendly products also tend to have fewer additives and allergens.";
+    } else {
+      result.personalizedAdvice = `Based on your preference: "${customInstructions}", we recommend exploring options that balance sustainability with your specific needs.`;
+    }
+  }
+  
+  return result;
 }
 
 module.exports = router; 

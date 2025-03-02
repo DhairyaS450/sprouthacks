@@ -152,6 +152,34 @@
             </div>
             
             <div class="mt-4">
+              <div class="personalization-section mb-3">
+                <div class="accordion" id="personalizationAccordion">
+                  <div class="accordion-item border-0 shadow-sm">
+                    <h2 class="accordion-header" id="personalizationHeading">
+                      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#personalizationCollapse" aria-expanded="false" aria-controls="personalizationCollapse">
+                        <i class="bi bi-sliders me-2"></i> Personalize Your Recommendations
+                      </button>
+                    </h2>
+                    <div id="personalizationCollapse" class="accordion-collapse collapse" aria-labelledby="personalizationHeading" data-bs-parent="#personalizationAccordion">
+                      <div class="accordion-body">
+                        <div class="form-floating">
+                          <textarea class="form-control" id="customInstructions" style="height: 100px" placeholder="Enter your preferences"></textarea>
+                          <label for="customInstructions">Custom Instructions</label>
+                        </div>
+                        <div class="form-text text-muted">
+                          <i class="bi bi-info-circle me-1"></i> Examples:
+                          <ul class="mt-1 small">
+                            <li>"I'm on a tight budget so I cannot afford to spend too much more on food"</li>
+                            <li>"I prefer locally sourced products over imported ones"</li>
+                            <li>"I have allergies to nuts and dairy"</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
               <div class="d-grid">
                 <button id="analyzeBtn" class="btn btn-success btn-lg" disabled>
                   <i class="bi bi-search me-2"></i>Analyze Product
@@ -196,6 +224,11 @@
                 <div id="alternativesContainer">
                   <!-- Alternatives will be added here dynamically -->
                 </div>
+              </div>
+              
+              <div id="personalizedAdviceContainer" class="mt-4 p-3 bg-light rounded border-start border-success border-3" style="display: none;">
+                <h5><i class="bi bi-person-check me-2"></i>Personalized Advice</h5>
+                <p id="personalizedAdvice">Based on your preferences, we recommend...</p>
               </div>
             </div>
           </div>
@@ -322,9 +355,15 @@
         analyzeBtn.disabled = true;
         
         try {
+          // Get custom instructions if provided
+          const customInstructions = document.getElementById('customInstructions').value.trim();
+          
           // Create form data for upload
           const formData = new FormData();
           formData.append('image', capturedBlob, 'product.jpg'); // Use the global variable
+          if (customInstructions) {
+            formData.append('customInstructions', customInstructions);
+          }
           
           // Send to server for analysis
           const response = await fetch('/api/products/analyze', {
@@ -385,12 +424,26 @@
           alternativesContainer.innerHTML = '<p>No alternatives found</p>';
         }
         
+        // Display personalized advice if available
+        const personalizedAdviceContainer = document.getElementById('personalizedAdviceContainer');
+        const personalizedAdvice = document.getElementById('personalizedAdvice');
+        
+        if (result.personalizedAdvice) {
+          personalizedAdvice.textContent = result.personalizedAdvice;
+          personalizedAdviceContainer.style.display = 'block';
+        } else {
+          personalizedAdviceContainer.style.display = 'none';
+        }
+        
         // Show result
         productResult.style.display = 'block';
       }
       
       // Display mock result for demo purposes
       function displayMockResult() {
+        // Get custom instructions if provided
+        const customInstructions = document.getElementById('customInstructions').value.trim();
+        
         const mockResult = {
           name: "Plastic Water Bottle",
           sustainabilityScore: 3,
@@ -408,6 +461,21 @@
             }
           ]
         };
+        
+        // Add personalized advice if custom instructions were provided
+        if (customInstructions) {
+          if (customInstructions.toLowerCase().includes('budget') || 
+              customInstructions.toLowerCase().includes('afford')) {
+            mockResult.personalizedAdvice = "Based on your budget concerns, consider a basic reusable plastic water bottle as a more affordable alternative. While not as durable as stainless steel, it's still much better for the environment than single-use bottles and will save you money over time.";
+          } else if (customInstructions.toLowerCase().includes('local') || 
+                    customInstructions.toLowerCase().includes('domestic')) {
+            mockResult.personalizedAdvice = "Since you prefer local products, look for water bottles manufactured in your country to reduce transportation emissions. Many domestic brands offer quality reusable bottles at competitive prices.";
+          } else if (customInstructions.toLowerCase().includes('allerg')) {
+            mockResult.personalizedAdvice = "With your allergy concerns in mind, consider stainless steel or glass bottles rather than plastic, as they don't leach chemicals and are easier to thoroughly clean between uses.";
+          } else {
+            mockResult.personalizedAdvice = `Based on your preference: "${customInstructions}", we recommend exploring local stores for reusable bottles that align with your specific needs.`;
+          }
+        }
         
         displayProductResult(mockResult);
       }
