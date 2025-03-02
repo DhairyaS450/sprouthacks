@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Scanner - EcoReceipt</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <style>
+    #cameraContainer {
+      position: relative;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    #cameraPreview {
+      width: 100%;
+      max-height: 400px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .camera-controls {
+      margin-top: 15px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    .capture-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: white;
+      border: 3px solid #198754;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .capture-btn:hover {
+      background-color: #f8f9fa;
+    }
+    .capture-btn .inner-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-color: #198754;
+    }
+    .product-result {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 8px;
+      background-color: #f8f9fa;
+      display: none;
+    }
+    .sustainability-meter {
+      height: 10px;
+      border-radius: 5px;
+      background: linear-gradient(to right, #dc3545, #ffc107, #198754);
+      margin: 10px 0;
+      position: relative;
+    }
+    .sustainability-indicator {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: #fff;
+      border: 2px solid #333;
+      border-radius: 50%;
+      top: -5px;
+      transform: translateX(-50%);
+      transition: left 0.5s ease;
+    }
+    .alternatives-container {
+      margin-top: 15px;
+    }
+    .alternative-card {
+      border-left: 4px solid #198754;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #fff;
+      border-radius: 4px;
+    }
+    .loading-spinner {
+      display: none;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .captured-image {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 8px;
+      margin: 10px 0;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+    <div class="container">
+      <a class="navbar-brand" href="/html/index.html">EcoReceipt</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/html/index.html">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/html/upload.html">Upload Receipt</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/html/dashboard.html">Dashboard</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/html/product-scanner.html">Product Scanner</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body p-4">
+            <h2 class="text-center mb-4">Product Sustainability Scanner</h2>
+            
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle-fill me-2"></i>
+              Scan product barcodes or take a photo of products to get sustainability insights and eco-friendly alternatives.
+            </div>
+            
+            <div id="cameraContainer">
+              <video id="cameraPreview" autoplay playsinline></video>
+              <canvas id="captureCanvas" style="display: none;"></canvas>
+              <img id="capturedImage" class="captured-image" alt="Captured product image">
+              
+              <div class="camera-controls">
+                <button id="switchCameraBtn" class="btn btn-outline-secondary">
+                  <i class="bi bi-arrow-repeat"></i>
+                </button>
+                <div id="captureBtn" class="capture-btn">
+                  <div class="inner-circle"></div>
+                </div>
+                <button id="flashBtn" class="btn btn-outline-secondary">
+                  <i class="bi bi-lightning"></i>
+                </button>
+              </div>
+            </div>
+            
+            <div class="mt-4">
+              <div class="d-grid">
+                <button id="analyzeBtn" class="btn btn-success btn-lg" disabled>
+                  <i class="bi bi-search me-2"></i>Analyze Product
+                </button>
+              </div>
+              
+              <div class="text-center mt-3">
+                <button id="resetBtn" class="btn btn-outline-secondary">
+                  <i class="bi bi-arrow-counterclockwise me-2"></i>Reset
+                </button>
+              </div>
+            </div>
+            
+            <div id="loadingSpinner" class="loading-spinner">
+              <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2">Analyzing product sustainability...</p>
+            </div>
+            
+            <div id="productResult" class="product-result">
+              <h4 id="productName" class="mb-3">Product Name</h4>
+              
+              <div>
+                <h5>Sustainability Score: <span id="sustainabilityScore">7</span>/10</h5>
+                <div class="sustainability-meter">
+                  <div id="sustainabilityIndicator" class="sustainability-indicator" style="left: 70%;"></div>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <small>Less Sustainable</small>
+                  <small>More Sustainable</small>
+                </div>
+              </div>
+              
+              <div class="mt-4">
+                <h5>Environmental Impact</h5>
+                <p id="environmentalImpact">This product has a moderate environmental impact.</p>
+              </div>
+              
+              <div class="alternatives-container">
+                <h5>Sustainable Alternatives</h5>
+                <div id="alternativesContainer">
+                  <!-- Alternatives will be added here dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // DOM elements
+      const cameraPreview = document.getElementById('cameraPreview');
+      const captureCanvas = document.getElementById('captureCanvas');
+      const capturedImage = document.getElementById('capturedImage');
+      const captureBtn = document.getElementById('captureBtn');
+      const switchCameraBtn = document.getElementById('switchCameraBtn');
+      const flashBtn = document.getElementById('flashBtn');
+      const analyzeBtn = document.getElementById('analyzeBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const loadingSpinner = document.getElementById('loadingSpinner');
+      const productResult = document.getElementById('productResult');
+      
+      // Camera variables
+      let stream = null;
+      let facingMode = 'environment'; // Start with back camera
+      let imageCapture = null;
+      let flashEnabled = false;
+      let capturedBlob = null; // Add this line to store the blob globally
+      
+      // Initialize camera
+      async function initCamera() {
+        try {
+          if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+          }
+          
+          const constraints = {
+            video: {
+              facingMode: facingMode,
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            }
+          };
+          
+          stream = await navigator.mediaDevices.getUserMedia(constraints);
+          cameraPreview.srcObject = stream;
+          
+          const videoTrack = stream.getVideoTracks()[0];
+          imageCapture = new ImageCapture(videoTrack);
+          
+          // Check if flash is supported
+          const capabilities = videoTrack.getCapabilities();
+          if (capabilities.torch) {
+            flashBtn.disabled = false;
+            flashBtn.addEventListener('click', toggleFlash);
+          } else {
+            flashBtn.disabled = true;
+          }
+          
+          // Show camera UI
+          cameraPreview.style.display = 'block';
+          capturedImage.style.display = 'none';
+          analyzeBtn.disabled = true;
+          
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          alert('Error accessing camera. Please make sure you have granted camera permissions.');
+        }
+      }
+      
+      // Toggle flash
+      async function toggleFlash() {
+        if (!stream) return;
+        
+        const videoTrack = stream.getVideoTracks()[0];
+        flashEnabled = !flashEnabled;
+        
+        try {
+          await videoTrack.applyConstraints({
+            advanced: [{ torch: flashEnabled }]
+          });
+          
+          flashBtn.classList.toggle('btn-warning', flashEnabled);
+          flashBtn.classList.toggle('btn-outline-secondary', !flashEnabled);
+        } catch (error) {
+          console.error('Error toggling flash:', error);
+        }
+      }
+      
+      // Capture image
+      async function captureImage() {
+        if (!imageCapture) return;
+        
+        try {
+          const blob = await imageCapture.takePhoto();
+          const imgUrl = URL.createObjectURL(blob);
+          
+          capturedImage.src = imgUrl;
+          capturedImage.style.display = 'block';
+          cameraPreview.style.display = 'none';
+          
+          // Enable analyze button
+          analyzeBtn.disabled = false;
+          
+          // Store the blob for later upload
+          capturedBlob = blob; // Store in the global variable instead of dataset
+          
+        } catch (error) {
+          console.error('Error capturing image:', error);
+          alert('Error capturing image. Please try again.');
+        }
+      }
+      
+      // Analyze product
+      async function analyzeProduct() {
+        if (!capturedBlob) { // Use the global variable instead of dataset
+          alert('Please capture an image first');
+          return;
+        }
+        
+        // Show loading spinner
+        loadingSpinner.style.display = 'block';
+        analyzeBtn.disabled = true;
+        
+        try {
+          // Create form data for upload
+          const formData = new FormData();
+          formData.append('image', capturedBlob, 'product.jpg'); // Use the global variable
+          
+          // Send to server for analysis
+          const response = await fetch('/api/products/analyze', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Server responded with ${response.status}`);
+          }
+          
+          const result = await response.json();
+          displayProductResult(result);
+          
+        } catch (error) {
+          console.error('Error analyzing product:', error);
+          alert('Error analyzing product. Please try again.');
+          
+          // For demo purposes, show mock result if server fails
+          displayMockResult();
+        } finally {
+          loadingSpinner.style.display = 'none';
+        }
+      }
+      
+      // Display product analysis result
+      function displayProductResult(result) {
+        // Set product name
+        document.getElementById('productName').textContent = result.name || 'Unknown Product';
+        
+        // Set sustainability score
+        const score = result.sustainabilityScore || 5;
+        document.getElementById('sustainabilityScore').textContent = score;
+        
+        // Update sustainability indicator position (0-100%)
+        const indicatorPosition = (score / 10) * 100;
+        document.getElementById('sustainabilityIndicator').style.left = `${indicatorPosition}%`;
+        
+        // Set environmental impact
+        document.getElementById('environmentalImpact').textContent = result.impact || 'No impact information available';
+        
+        // Add alternatives
+        const alternativesContainer = document.getElementById('alternativesContainer');
+        alternativesContainer.innerHTML = '';
+        
+        if (result.alternatives && result.alternatives.length > 0) {
+          result.alternatives.forEach(alt => {
+            const altCard = document.createElement('div');
+            altCard.className = 'alternative-card';
+            altCard.innerHTML = `
+              <h6>${alt.name}</h6>
+              <p>${alt.description}</p>
+              <a href="${alt.link}" target="_blank" class="btn btn-sm btn-outline-success">View Product</a>
+            `;
+            alternativesContainer.appendChild(altCard);
+          });
+        } else {
+          alternativesContainer.innerHTML = '<p>No alternatives found</p>';
+        }
+        
+        // Show result
+        productResult.style.display = 'block';
+      }
+      
+      // Display mock result for demo purposes
+      function displayMockResult() {
+        const mockResult = {
+          name: "Plastic Water Bottle",
+          sustainabilityScore: 3,
+          impact: "Single-use plastic water bottles have a significant environmental impact due to plastic pollution and high carbon footprint from production and transportation.",
+          alternatives: [
+            {
+              name: "Reusable Stainless Steel Water Bottle",
+              link: "https://www.amazon.com/s?k=stainless+steel+water+bottle",
+              description: "Reusable bottles reduce plastic waste and have a lower lifetime carbon footprint."
+            },
+            {
+              name: "Glass Water Bottle with Silicone Sleeve",
+              link: "https://www.amazon.com/s?k=glass+water+bottle+with+sleeve",
+              description: "Glass is infinitely recyclable and doesn't leach chemicals into your water."
+            }
+          ]
+        };
+        
+        displayProductResult(mockResult);
+      }
+      
+      // Reset camera and UI
+      function resetCamera() {
+        // Reset UI
+        cameraPreview.style.display = 'block';
+        capturedImage.style.display = 'none';
+        productResult.style.display = 'none';
+        loadingSpinner.style.display = 'none';
+        analyzeBtn.disabled = true;
+        
+        // Clear captured image data
+        capturedImage.src = '';
+        capturedBlob = null; // Reset the global variable instead of dataset
+      }
+      
+      // Switch camera (front/back)
+      function switchCamera() {
+        facingMode = facingMode === 'environment' ? 'user' : 'environment';
+        initCamera();
+      }
+      
+      // Event listeners
+      captureBtn.addEventListener('click', captureImage);
+      switchCameraBtn.addEventListener('click', switchCamera);
+      analyzeBtn.addEventListener('click', analyzeProduct);
+      resetBtn.addEventListener('click', resetCamera);
+      
+      // Initialize camera on page load
+      initCamera();
+    });
+  </script>
+</body>
+</html>

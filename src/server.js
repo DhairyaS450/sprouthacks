@@ -9,6 +9,7 @@ const maxDuration = 60; // 5 minutes
 // Import routes
 const receiptRoutes = require('./routes/receiptRoutes');
 const userRoutes = require('./routes/userRoutes');
+const productRoutes = require('./routes/productRoutes');
 
 // Import seed data functions
 const { seedDefaultUser, seedLeaderboardUsers } = require('./utils/seedData');
@@ -64,6 +65,7 @@ mongoose.connect(MONGODB_URI, {
 // Routes
 app.use('/api/receipts', receiptRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/products', productRoutes);
 
 // Home route
 app.get('/', (req, res) => {
@@ -78,6 +80,11 @@ app.get('/dashboard', (req, res) => {
 // Upload route
 app.get('/upload', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/html/upload.html'));
+});
+
+// Product scanner route
+app.get('/product-scanner', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/html/product-scanner.html'));
 });
 
 // Receipt detail route

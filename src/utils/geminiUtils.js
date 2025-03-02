@@ -240,6 +240,92 @@ function getMockAnalysis(products) {
   return mockAnalysis;
 }
 
+/**
+ * Analyze product with Gemini to get sustainability insights
+ * @param {string} productImagePath - Path to product image or Cloudinary URL
+ * @returns {Object} - Analysis results including sustainability score and alternatives
+ */
+async function analyzeProductWithGemini(productImagePath) {
+  try {
+    console.log('Starting Gemini product analysis...');
+    
+    // Check if we have a valid API key
+    if (!process.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY === 'dummy-api-key') {
+      console.log('No valid Gemini API key found, using mock product analysis');
+      return null;
+    }
+    
+    // Determine MIME type based on file path
+    let mimeType = 'image/jpeg';
+    if (productImagePath.toLowerCase().endsWith('.png')) {
+      mimeType = 'image/png';
+    }
+    
+    const files = [
+      await fileToGenerativePart(productImagePath, mimeType),
+    ]
+    
+    // Create a prompt for Gemini
+    const prompt = `
+    Analyze the following picture of a product for its sustainability impact:
+    
+    1. Identify what the product is
+    2. Provide a sustainability score from 0-10 (0 being least sustainable, 10 being most sustainable)
+    3. Explain the environmental impact of this product
+    4. Suggest 1-3 more sustainable alternatives with links (use Amazon or local store links)
+    
+    Format your response as a JSON object with the following structure:
+    {
+      "name": "Product Name",
+      "sustainabilityScore": score,
+      "impact": "Environmental impact description",
+      "alternatives": [
+        {
+          "name": "Alternative Product",
+          "link": "https://link-to-product",
+          "description": "Why this is more sustainable"
+        }
+      ]
+    }
+    `;
+    
+    console.log('Sending product prompt to Gemini...');
+    
+    // Get response from Gemini
+    const result = await model.generateContent([prompt, ...files]);
+    const responseText = result.response.text();
+    
+    console.log('Received product response from Gemini');
+    
+    // Parse the JSON response
+    // We need to extract the JSON part from the response
+    const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/) || 
+                      responseText.match(/```\n([\s\S]*?)\n```/) || 
+                      responseText.match(/{[\s\S]*}/);
+                      
+    let jsonStr = '';
+    if (jsonMatch) {
+      jsonStr = jsonMatch[0].replace(/```json\n|```\n|```/g, '');
+    } else {
+      jsonStr = responseText;
+    }
+    
+    try {
+      const analysis = JSON.parse(jsonStr);
+      console.log('Successfully parsed Gemini product response');
+      return analysis;
+    } catch (jsonError) {
+      console.error('Failed to parse Gemini product response as JSON:', jsonError);
+      console.log('Response text:', responseText);
+      return null;
+    }
+  } catch (error) {
+    console.error('Gemini Product Analysis Error:', error);
+    return null;
+  }
+}
+
 module.exports = {
-  analyzeReceiptWithGemini
+  analyzeReceiptWithGemini,
+  analyzeProductWithGemini
 }; 
