@@ -6,6 +6,9 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const maxDuration = 60; // 5 minutes
 
+// Import database connection utility
+const { connectToDatabase } = require('./utils/database');
+
 // Import routes
 const receiptRoutes = require('./routes/receiptRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -42,25 +45,31 @@ if (isCloudinaryConfigured()) {
   console.log('Cloudinary is not configured. Using local file storage for uploads.');
 }
 
-// Connect to MongoDB
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/eco-tracker';
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000 // Timeout after 5s instead of 30s
-})
+// Connect to MongoDB using our optimized connection utility
+connectToDatabase()
   .then(() => {
     console.log('Connected to MongoDB');
     
-    // Seed the database with default data
-    seedDefaultUser().then(() => {
-      seedLeaderboardUsers();
-    });
+    // Instead of blocking the initial connection with seed operations,
+    // we'll run them in the background without waiting for completion
+    runSeedOperationsInBackground();
   })
   .catch(err => {
     console.error('MongoDB connection error:', err);
     console.log('Continuing without MongoDB connection. Some features may not work.');
   });
+
+// Function to run seed operations in the background without blocking
+function runSeedOperationsInBackground() {
+  // Run seed operations without awaiting them
+  seedDefaultUser()
+    .then(() => console.log('Default user seeding completed or already exists'))
+    .catch(err => console.error('Background seeding default user error:', err));
+  
+  seedLeaderboardUsers()
+    .then(() => console.log('Leaderboard users seeding completed or already exists'))
+    .catch(err => console.error('Background seeding leaderboard users error:', err));
+}
 
 // Routes
 app.use('/api/receipts', receiptRoutes);
