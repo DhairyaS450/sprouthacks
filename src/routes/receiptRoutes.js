@@ -126,15 +126,7 @@ router.post('/upload', (req, res, next) => {
 
     // For demo purposes, if MongoDB is not connected, return a mock response
     if (mongoose.connection.readyState !== 1) {
-      console.log('MongoDB not connected, returning mock response');
-      return res.status(201).json({
-        _id: 'mock-receipt-id',
-        user: userId,
-        imagePath: imagePath,
-        status: 'pending',
-        message: 'Receipt uploaded successfully. Analysis in progress.',
-        analysisDate: new Date()
-      });
+        console.warn(`MongoDB seems to not be connected. mongoose.connection.readyState: ${mongoose.connection.readyState}`);
     }
 
     const savedReceipt = await pendingReceipt.save();
